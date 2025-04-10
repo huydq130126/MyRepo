@@ -8,7 +8,7 @@
 #include <cstring>
 #include <fstream>
 
-#include "BinaryInsertionSort.h"
+
 #include "BubbleSort.h"
 #include "CountingSort.h"
 #include "DataGenerator.h"
@@ -27,19 +27,20 @@ using namespace std;
 using namespace std::chrono;
 typedef void (*sortAlgo)(int *, int);
 
-sortAlgo s[] = {selectionSort, insertionSort, binaryInsertionSort,
+sortAlgo s[] = {selectionSort, insertionSort, 
                 bubbleSort, shakerSort, shellSort,
                 heapSort, mergeSort, quickSort,
                 countingSort, radixSort, flashSort};
 
-const string algoName[12] = {
-    "Selection", "Insertion", "BinaryInsertion", "Bubble", "Shaker", "Shell",
-    "Heap", "Merge", "Quick", "Counting", "Radix", "Flash"};
+const string algoName[11] = {
+    "selection-sort", "insertion-sort", "bubble-sort",
+    "shaker-sort", "shell-sort", "heap-sort", "merge-sort", "quick-sort",
+    "counting-sort", "radix-sort", "flash-sort"};
 
 const string dataDistribution[4] = {"RandomData", "SortedData", "ReverseData",
                                     "NearlySortedData"};
 
-const int dataSize[6] = {10, 100, 200, 500, 1000, 2000};
+const int dataSize[4] = {10000, 30000, 50000, 100000};
 
 double process(int *a, int n, sortAlgo f, int nameIdx)
 {
@@ -48,7 +49,7 @@ double process(int *a, int n, sortAlgo f, int nameIdx)
     auto stop = system_clock::now();
     std::chrono::duration<double, std::milli> timeCost = stop - start;
     double ms = timeCost.count();
-    cout << setw(25) << left << (algoName[nameIdx] + "Sort: ") << setw(25)
+    cout << setw(25) << left << (algoName[nameIdx]) << setw(25)
          << right << fixed << setprecision(3) << ms << " ms\t->";
     if (is_sorted(a, a + n))
         cout << "SUCCEED!\n";
@@ -59,7 +60,7 @@ double process(int *a, int n, sortAlgo f, int nameIdx)
 
 bool validAlgo(const string &algo)
 {
-    for (int i = 0; i < 12; i++)
+    for (int i = 0; i < 11; i++)
     {
         if (algoName[i] == algo)
             return true;
@@ -72,47 +73,12 @@ int main(int argc, char *argv[])
     int *source = NULL;
     int *a = NULL;
 
-    for (int t = 0; t < 4; ++t)
-    {
-        cout << dataDistribution[t] << "\n";
-        for (int sz = 0; sz < 6; ++sz)
-        {
-            int n = dataSize[sz];
-            cout << "Data Size = " << n << "\n";
-
-            // create vector row containing result of each datasize
-            vector<double> row;
-            double time = 0;
-
-            // Generate integer array
-            source = new int[n];
-            generateData(source, n, t);
-
-            // Sort array and show the time cost
-            for (int algo = 0; algo < 12; ++algo)
-            {
-                restoreArray(source, a, n);
-                time = process(a, n, s[algo], algo);
-                // row.push_back(time);
-            }
-
-            // Write result to CSV file
-            // table.push_back(make_pair("n = " + to_string(n), row));
-            // write_csv(dataDistribution[t] + ".csv", table);
-
-            // Release memory that dynamically allocated
-            delete[] source;
-            cout << "\n";
-        }
-
-        cout << "*************************************\n\n";
-    }
 
     // Chose the way to sort array
 
     if (argc != 7)
     {
-        cout << "./main.ext -a <Sort_way> -i <input_txt> -o <output_txt'";
+        cout << "./main.exe -a <Sort_way> -i <input_txt> -o <output_txt'";
         return 0;
     }
 
@@ -151,7 +117,7 @@ int main(int argc, char *argv[])
     }
     int num;
     file >> num;
-    int arr[num];
+    int* arr = new int[num];
     for (int i = 0; i < num; i++)
     {
         file >> arr[i];
@@ -162,11 +128,12 @@ int main(int argc, char *argv[])
     if (it != end(algoName))
     {
         int idx = distance(begin(algoName), it);
-        s[idx](arr, num);
+        process(arr, num, s[idx], idx);
     }
     else
     {
         cout << "Invalid sorting algorithm specified.";
+        delete[] arr;
         return 0;
     }
 
@@ -174,6 +141,7 @@ int main(int argc, char *argv[])
     if (!output)
     {
         cout << "Unable to open output file.";
+        delete[] arr;
         return 0;
     }
     for (int i = 0; i < num; i++)
@@ -181,5 +149,6 @@ int main(int argc, char *argv[])
         output << arr[i] << " ";
     }
     output.close();
+    delete[] arr;
     return 0;
 }
